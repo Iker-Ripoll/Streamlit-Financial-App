@@ -102,7 +102,7 @@ if ticker:
         **Nota**:El histograma de los retornos diarios muestra la distribución de los rendimientos de la acción en el corto plazo. 
         Permite observar con qué frecuencia ocurren ciertos niveles de rendimiento, lo que proporciona información sobre la estabilidad y riesgo asociado con la acción.
         """)
-        st.markdown("---")
+        
 
     
 
@@ -121,5 +121,7 @@ st.markdown("**Lic. Administración y Finanzas**")
 st.markdown("**ID: 0243449**")
 
 st.markdown("**APP Desarollada para el Examen de Ingenieria Financiera**")
+
+st.markdown("---")
 
 
