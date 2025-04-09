@@ -27,7 +27,7 @@ Introduce el ticker de una acción para obtener información detallada, gráfica
 ticker = st.text_input("Introduce el Ticker de la Empresa (Ej. AAPL, MSFT, TSLA):")
 
 if ticker:
-    # Extracción de información con yfinance
+    # Intentar obtener datos con yfinance
     try:
         empresa = yf.Ticker(ticker)
         info = empresa.info
@@ -49,6 +49,12 @@ if ticker:
             font=dict(size=14)  # Ajuste de tamaño de texto en el gráfico
         )
         st.plotly_chart(fig)
+
+        # Explicación de los gráficos
+        st.markdown("""
+        El gráfico de precio histórico de cierre ajustado muestra la evolución del precio de la acción durante los últimos 5 años. 
+        Ayuda a visualizar cómo ha cambiado el valor de la acción a lo largo del tiempo y permite identificar tendencias o puntos clave en su comportamiento.
+        """)
 
         # Cálculo de rendimientos anualizados (CAGR)
         st.subheader("📈 Rendimientos Anualizados (CAGR)")
@@ -87,6 +93,12 @@ if ticker:
         )
         st.plotly_chart(fig_volatilidad)
 
+        # Explicación de los gráficos de volatilidad
+        st.markdown("""
+        El histograma de los retornos diarios muestra la distribución de los rendimientos de la acción en el corto plazo. 
+        Permite observar con qué frecuencia ocurren ciertos niveles de rendimiento, lo que proporciona información sobre la estabilidad y riesgo asociado con la acción.
+        """)
+
         # Explicación adicional después de los gráficos
         st.markdown("""
         **Explicación de los Resultados:**
@@ -102,8 +114,8 @@ if ticker:
         Estos cálculos y gráficos te ayudarán a tomar decisiones informadas sobre la acción que estás analizando.
         """)
 
-    except ValueError:
-        st.error("Introduzca un ticker correcto.")
+    except (ValueError, KeyError):
+        st.error("Introduzca un ticker correcto.")  # Manejamos el error de ticker incorrecto sin romper el código
 else:
     st.info("Introduce un ticker para comenzar el análisis.")
 
