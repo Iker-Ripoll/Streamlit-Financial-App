@@ -1,9 +1,9 @@
-import streamlit as st # type: ignore
-import yfinance as yf # type: ignore
+import streamlit as st
+import yfinance as yf
 import pandas as pd
 import numpy as np
 import datetime
-import plotly.graph_objects as go # type: ignore
+import plotly.graph_objects as go
 
 st.set_page_config(page_title="Análisis Financiero", layout="centered")
 
@@ -81,4 +81,5 @@ st.markdown("📌 **Nota:** La volatilidad mide el riesgo, basada en la desviaci
 
 # Footer
 st.markdown("---")
-st.markdown("Desarrollado por Iker Ripoll Solana | Quant Dynamics")
+st.markdown("Desarrollado por Iker Ripoll Solana")
+
