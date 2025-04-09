@@ -99,7 +99,7 @@ if ticker:
 
         # Explicación de los gráficos de volatilidad
         st.markdown("""
-        **Nota**:El histograma de los retornos diarios muestra la distribución de los rendimientos de la acción en el corto plazo. 
+        **Nota**: El histograma de los retornos diarios muestra la distribución de los rendimientos de la acción en el corto plazo. 
         Permite observar con qué frecuencia ocurren ciertos niveles de rendimiento, lo que proporciona información sobre la estabilidad y riesgo asociado con la acción.
         """)
         
