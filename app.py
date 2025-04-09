@@ -15,8 +15,9 @@ def calcular_cagr(precios, periodos):
 # Configuración inicial de Streamlit
 st.set_page_config(page_title="Análisis Financiero", page_icon="📊", layout="wide")
 
-# Encabezado y descripción del app
-st.title("Análisis Financiero Interactivo")
+# Título centrado
+st.markdown("<h1 style='text-align: center;'>Análisis Financiero Interactivo</h1>", unsafe_allow_html=True)
+
 st.markdown("""
 Esta aplicación permite analizar el desempeño de una empresa en la bolsa de valores mediante el uso de datos históricos de precios de acciones y métricas financieras. 
 Introduce el ticker de una acción para obtener información detallada, gráficas y análisis.
@@ -70,6 +71,15 @@ if ticker:
         st.markdown("""
         **Nota:** La volatilidad mide el riesgo, basada en la desviación estándar de los retornos diarios de la acción.
         """)
+
+        # Gráfico adicional de volatilidad (histograma de los retornos diarios)
+        st.subheader("📊 Histograma de los Retornos Diarios")
+        fig_volatilidad = go.Figure(data=[go.Histogram(x=precios["Retornos Diarios"].dropna(), nbinsx=50)])
+        fig_volatilidad.update_layout(title="Histograma de los Retornos Diarios",
+                                      xaxis_title="Retornos Diarios",
+                                      yaxis_title="Frecuencia",
+                                      template="plotly_dark")
+        st.plotly_chart(fig_volatilidad)
 
     except ValueError:
         st.error("Ticker inválido, por favor revise e intente de nuevo.")
