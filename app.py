@@ -1,102 +1,80 @@
-import streamlit as st
 import yfinance as yf
 import pandas as pd
 import numpy as np
-import datetime
-import plotly.graph_objects as go
-
-st.set_page_config(page_title="Análisis Financiero", layout="centered")
-
-# Sidebar - Entrada del usuario
-st.sidebar.title("Parámetros de Búsqueda")
-ticker_input = st.sidebar.text_input("Ingresa el Ticker (ej. AAPL)", value="AAPL")
-hoy = datetime.date.today()
-inicio = hoy - datetime.timedelta(days=5*365)
-fecha_inicio = st.sidebar.date_input("Fecha de inicio", inicio)
-fecha_fin = st.sidebar.date_input("Fecha de fin", hoy)
-
-st.title("📊 Análisis Financiero con Streamlit")
-
-# Validación del ticker
-try:
-    ticker = yf.Ticker(ticker_input)
-    info = ticker.info
-    nombre = info.get("longName", "Nombre no disponible")
-    sector = info.get("sector", "Sector no disponible")
-    descripcion = info.get("longBusinessSummary", "Descripción no disponible")
-except Exception:
-    st.error("❌ Ticker inválido. Por favor, intenta con otro.")
-    st.stop()
-
-# Mostrar información de la empresa
-st.header(f"{nombre}")
-st.markdown(f"**Sector:** {sector}")
-st.markdown(f"**Descripción:** {descripcion}")
-
-# Descargar precios históricos
-df = ticker.history(start=fecha_inicio, end=fecha_fin)
-if df.empty:
-    st.error("No hay datos disponibles para el rango de fechas seleccionado.")
-    st.stop()
-
-df = df[["Close"]]
-df.rename(columns={"Close": "Precio Cierre"}, inplace=True)
-
-# Gráfica de precios históricos
-st.subheader("📈 Precio histórico de cierre ajustado")
-fig = go.Figure()
-fig.add_trace(go.Scatter(x=df.index, y=df["Precio Cierre"], mode="lines", name=ticker_input))
-fig.update_layout(title=f"Precio histórico - {ticker_input}",
-                  xaxis_title="Fecha", yaxis_title="Precio de Cierre (USD)")
-st.plotly_chart(fig)
-
-# Cálculo de CAGR
-def calcular_cagr(precios, años):
-    if len(precios) < 2:
-        return None
-    return ((precios[-1] / precios[0]) ** (1/años)) - 1
-
-st.subheader("📊 Rendimientos Anualizados")
-import pandas as pd
-import numpy as np
-import datetime
 import streamlit as st
+import plotly.graph_objs as go
+import datetime
 
-# Asegúrate de que 'fechas' (el índice del DataFrame) sea de tipo datetime
-fechas = pd.to_datetime(df.index)
+# Función para calcular el CAGR (Tasa de Crecimiento Compuesta Anual)
+def calcular_cagr(precios, periodos):
+    inicio = precios.iloc[0]
+    fin = precios.iloc[-1]
+    cagr = (fin / inicio) ** (1 / periodos) - 1
+    return cagr
 
-# Asegúrate de que 'fecha_fin' sea de tipo datetime
-fecha_fin = pd.to_datetime(fecha_fin)
+# Configuración inicial de Streamlit
+st.set_page_config(page_title="Análisis Financiero", page_icon="📊", layout="wide")
 
-# Calcula el CAGR para 1, 3 y 5 años
-cagr_1 = calcular_cagr(df["Precio Cierre"].loc[fechas >= (fecha_fin - datetime.timedelta(days=365))], 1)
-cagr_3 = calcular_cagr(df["Precio Cierre"].loc[fechas >= (fecha_fin - datetime.timedelta(days=3*365))], 3)
-cagr_5 = calcular_cagr(df["Precio Cierre"], 5)
+# Encabezado y descripción del app
+st.title("Análisis Financiero Interactivo")
+st.markdown("""
+Esta aplicación permite analizar el desempeño de una empresa en la bolsa de valores mediante el uso de datos históricos de precios de acciones y métricas financieras. 
+Introduce el ticker de una acción para obtener información detallada, gráficas y análisis.
+""")
 
-# Crear un diccionario con los resultados del CAGR
-rendimientos = {
-    "Periodo": ["1 año", "3 años", "5 años"],
-    "CAGR (%)": [round(c * 100, 2) if c is not None else "N/A" for c in [cagr_1, cagr_3, cagr_5]]
-}
+# Entrada de datos - Ticker de la empresa
+ticker = st.text_input("Introduce el Ticker de la Empresa (Ej. AAPL, MSFT, TSLA):")
 
-# Mostrar los rendimientos en Streamlit
-st.dataframe(pd.DataFrame(rendimientos))
+if ticker:
+    # Extracción de información con yfinance
+    try:
+        empresa = yf.Ticker(ticker)
+        info = empresa.info
+        precios = empresa.history(period="5y")  # Obtiene datos de 5 años
 
-# Explicación en markdown sobre el cálculo del CAGR
-st.markdown(
-    "📌 **Nota:** El rendimiento anualizado (CAGR) se calcula como el crecimiento compuesto anual del precio de la acción para cada período."
-)
+        # Mostrar información fundamental
+        st.subheader(f"Información de {info['shortName']}")
+        st.markdown(f"**Sector:** {info['sector']}")
+        st.markdown(f"**Descripción:** {info['longBusinessSummary']}")
 
-# Cálculo de volatilidad anualizada
-st.subheader("📉 Volatilidad Anualizada")
-df["Retornos Diarios"] = df["Precio Cierre"].pct_change()
+        # Visualización de precios históricos
+        st.subheader("📉 Precio Histórico de Cierre Ajustado")
+        fig = go.Figure(data=[go.Scatter(x=precios.index, y=precios['Close'], mode='lines', name='Precio de Cierre Ajustado')])
+        fig.update_layout(title=f"Precio Histórico de Cierre Ajustado - {ticker} (2019-2024)",
+                          xaxis_title="Fecha",
+                          yaxis_title="Precio (USD)",
+                          template="plotly_dark")
+        st.plotly_chart(fig)
 
-# Cálculo de volatilidad basada en los retornos diarios
-volatilidad = np.std(df["Retornos Diarios"].dropna()) * np.sqrt(252)
+        # Cálculo de rendimientos anualizados (CAGR)
+        st.subheader("📈 Rendimientos Anualizados (CAGR)")
+        cagr_1 = calcular_cagr(precios['Close'], 1)
+        cagr_3 = calcular_cagr(precios['Close'], 3)
+        cagr_5 = calcular_cagr(precios['Close'], 5)
 
-# Mostrar la volatilidad anualizada en Streamlit
-st.metric(label="Volatilidad anualizada (%)", value=f"{round(volatilidad*100, 2)}%")
-st.markdown("📌 **Nota:** La volatilidad mide el riesgo, basada en la desviación estándar de los retornos diarios.")
+        rendimientos = {
+            "Periodo": ["1 Año", "3 Años", "5 Años"],
+            "CAGR (%)": [round(cagr_1 * 100, 2), round(cagr_3 * 100, 2), round(cagr_5 * 100, 2)]
+        }
+
+        st.dataframe(pd.DataFrame(rendimientos))
+        st.markdown("""
+        **Nota:** El rendimiento anualizado (CAGR) se calcula como el crecimiento compuesto anual del precio de la acción para cada período.
+        """)
+
+        # Cálculo de volatilidad anualizada
+        st.subheader("📉 Volatilidad Anualizada")
+        precios["Retornos Diarios"] = precios["Close"].pct_change()
+        volatilidad = np.std(precios["Retornos Diarios"].dropna()) * np.sqrt(252)
+        st.metric(label="Volatilidad Anualizada (%)", value=f"{round(volatilidad * 100, 2)}%")
+        st.markdown("""
+        **Nota:** La volatilidad mide el riesgo, basada en la desviación estándar de los retornos diarios de la acción.
+        """)
+
+    except ValueError:
+        st.error("Ticker inválido, por favor revise e intente de nuevo.")
+else:
+    st.info("Introduce un ticker para comenzar el análisis.")
 
 # Footer
 st.markdown("---")
