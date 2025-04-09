@@ -109,5 +109,8 @@ else:
 # Footer
 st.markdown("---")
 st.markdown("**Desarollado por Iker Ripoll Solana**")
-st.markdown("LQM Profesor")
+st.markdown("**Lic. Administración y Finanzas**")
+st.markdown("**ID: 0243449**")
+st.markdown("**APP Desarollada para el Examen de Ingenieria Financiera**")
+
 
