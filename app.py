@@ -39,7 +39,7 @@ if ticker:
         st.markdown(f"<div style='text-align: justify;'>{info['longBusinessSummary']}</div>", unsafe_allow_html=True)
 
         # Visualización de precios históricos
-        st.subheader("📉 Precio Histórico de Cierre Ajustado")
+        st.subheader("📈 Precio Histórico de Cierre Ajustado")
         fig = go.Figure(data=[go.Scatter(x=precios.index, y=precios['Close'], mode='lines', name='Precio de Cierre Ajustado')])
         fig.update_layout(
             title=f"Precio Histórico de Cierre Ajustado - {ticker} (2019-2024)",
@@ -99,20 +99,7 @@ if ticker:
         Permite observar con qué frecuencia ocurren ciertos niveles de rendimiento, lo que proporciona información sobre la estabilidad y riesgo asociado con la acción.
         """)
 
-        # Explicación adicional después de los gráficos
-        st.markdown("""
-        **Explicación de los Resultados:**
-
-        1. **Gráfico de Precio Histórico de Cierre Ajustado**: Este gráfico muestra la evolución del precio de la acción durante los últimos 5 años. Ayuda a visualizar las tendencias a largo plazo de la empresa.
-
-        2. **Cálculo de Rendimientos Anualizados (CAGR)**: Los rendimientos anualizados muestran el crecimiento promedio anual de la acción durante los últimos 1, 3 y 5 años. Estos datos son útiles para evaluar la rentabilidad histórica de la acción.
-
-        3. **Volatilidad Anualizada**: La volatilidad mide el riesgo de la acción, calculando la variabilidad de los retornos diarios. Cuanto mayor sea la volatilidad, mayor será el riesgo asociado con la inversión en esa acción.
-
-        4. **Histograma de los Retornos Diarios**: El histograma muestra la distribución de los retornos diarios de la acción. Esto nos permite ver la frecuencia con la que ocurren ciertos rendimientos, proporcionando una visión adicional del riesgo asociado.
-
-        Estos cálculos y gráficos te ayudarán a tomar decisiones informadas sobre la acción que estás analizando.
-        """)
+    
 
     except (ValueError, KeyError):
         st.error("Introduzca un ticker correcto.")  # Manejamos el error de ticker incorrecto sin romper el código
