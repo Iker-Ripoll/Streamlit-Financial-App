@@ -37,6 +37,7 @@ if ticker:
         st.subheader(f"Información de {info['shortName']}")
         st.markdown(f"**Sector:** {info['sector']}")
         st.markdown(f"<div style='text-align: justify;'>{info['longBusinessSummary']}</div>", unsafe_allow_html=True)
+        st.markdown("---")
 
         # Visualización de precios históricos
         st.subheader("📈 Precio Histórico de Cierre Ajustado")
@@ -55,6 +56,7 @@ if ticker:
         **Nota**: El gráfico de precio histórico de cierre ajustado muestra la evolución del precio de la acción durante los últimos 5 años. 
         Ayuda a visualizar cómo ha cambiado el valor de la acción a lo largo del tiempo y permite identificar tendencias o puntos clave en su comportamiento.
         """)
+        st.markdown("---")
 
         # Cálculo de rendimientos anualizados (CAGR)
         st.subheader("📈 Rendimientos Anualizados (CAGR)")
@@ -71,6 +73,7 @@ if ticker:
         st.markdown("""
         **Nota:** El rendimiento anualizado (CAGR) se calcula como el crecimiento compuesto anual del precio de la acción para cada período.
         """)
+        st.markdown("---")
 
         # Cálculo de volatilidad anualizada
         st.subheader("📉 Volatilidad Anualizada")
@@ -80,6 +83,7 @@ if ticker:
         st.markdown("""
         **Nota:** La volatilidad mide el riesgo, basada en la desviación estándar de los retornos diarios de la acción.
         """)
+        st.markdown("---")
 
         # Gráfico adicional de volatilidad (histograma de los retornos diarios)
         st.subheader("📊 Histograma de los Retornos Diarios")
@@ -98,6 +102,7 @@ if ticker:
         **Nota**:El histograma de los retornos diarios muestra la distribución de los rendimientos de la acción en el corto plazo. 
         Permite observar con qué frecuencia ocurren ciertos niveles de rendimiento, lo que proporciona información sobre la estabilidad y riesgo asociado con la acción.
         """)
+        st.markdown("---")
 
     
 
@@ -108,13 +113,13 @@ else:
 
 # Footer
 st.markdown("---")
-st.markdown("---")
+
 st.markdown("**Desarollado por Iker Ripoll Solana**")
-st.markdown("---")
+
 st.markdown("**Lic. Administración y Finanzas**")
-st.markdown("---")
+
 st.markdown("**ID: 0243449**")
-st.markdown("---")
+
 st.markdown("**APP Desarollada para el Examen de Ingenieria Financiera**")
 
 
