@@ -57,17 +57,32 @@ def calcular_cagr(precios, años):
     return ((precios[-1] / precios[0]) ** (1/años)) - 1
 
 st.subheader("📊 Rendimientos Anualizados")
-fechas = df.index
+import pandas as pd
+import numpy as np
+import datetime
+import streamlit as st
+
+# Asegúrate de que 'fechas' (el índice del DataFrame) sea de tipo datetime
+fechas = pd.to_datetime(df.index)
+
+# Asegúrate de que 'fecha_fin' sea de tipo datetime
+fecha_fin = pd.to_datetime(fecha_fin)
+
+# Calcula el CAGR para 1, 3 y 5 años
 cagr_1 = calcular_cagr(df["Precio Cierre"].loc[fechas >= (fecha_fin - datetime.timedelta(days=365))], 1)
 cagr_3 = calcular_cagr(df["Precio Cierre"].loc[fechas >= (fecha_fin - datetime.timedelta(days=3*365))], 3)
 cagr_5 = calcular_cagr(df["Precio Cierre"], 5)
 
+# Crear un diccionario con los resultados del CAGR
 rendimientos = {
     "Periodo": ["1 año", "3 años", "5 años"],
     "CAGR (%)": [round(c * 100, 2) if c is not None else "N/A" for c in [cagr_1, cagr_3, cagr_5]]
 }
+
+# Mostrar los rendimientos en Streamlit
 st.dataframe(pd.DataFrame(rendimientos))
 
+# Explicación en markdown sobre el cálculo del CAGR
 st.markdown(
     "📌 **Nota:** El rendimiento anualizado (CAGR) se calcula como el crecimiento compuesto anual del precio de la acción para cada período."
 )
@@ -75,7 +90,11 @@ st.markdown(
 # Cálculo de volatilidad anualizada
 st.subheader("📉 Volatilidad Anualizada")
 df["Retornos Diarios"] = df["Precio Cierre"].pct_change()
+
+# Cálculo de volatilidad basada en los retornos diarios
 volatilidad = np.std(df["Retornos Diarios"].dropna()) * np.sqrt(252)
+
+# Mostrar la volatilidad anualizada en Streamlit
 st.metric(label="Volatilidad anualizada (%)", value=f"{round(volatilidad*100, 2)}%")
 st.markdown("📌 **Nota:** La volatilidad mide el riesgo, basada en la desviación estándar de los retornos diarios.")
 
