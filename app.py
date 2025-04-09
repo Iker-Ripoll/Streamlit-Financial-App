@@ -36,15 +36,18 @@ if ticker:
         # Mostrar información fundamental
         st.subheader(f"Información de {info['shortName']}")
         st.markdown(f"**Sector:** {info['sector']}")
-        st.markdown(f"**Descripción:** {info['longBusinessSummary']}")
+        st.markdown(f"<div style='text-align: justify;'>{info['longBusinessSummary']}</div>", unsafe_allow_html=True)
 
         # Visualización de precios históricos
         st.subheader("📉 Precio Histórico de Cierre Ajustado")
         fig = go.Figure(data=[go.Scatter(x=precios.index, y=precios['Close'], mode='lines', name='Precio de Cierre Ajustado')])
-        fig.update_layout(title=f"Precio Histórico de Cierre Ajustado - {ticker} (2019-2024)",
-                          xaxis_title="Fecha",
-                          yaxis_title="Precio (USD)",
-                          template="plotly_dark")
+        fig.update_layout(
+            title=f"Precio Histórico de Cierre Ajustado - {ticker} (2019-2024)",
+            xaxis_title="Fecha",
+            yaxis_title="Precio (USD)",
+            template="plotly_dark",
+            font=dict(size=14)  # Ajuste de tamaño de texto en el gráfico
+        )
         st.plotly_chart(fig)
 
         # Cálculo de rendimientos anualizados (CAGR)
@@ -75,14 +78,32 @@ if ticker:
         # Gráfico adicional de volatilidad (histograma de los retornos diarios)
         st.subheader("📊 Histograma de los Retornos Diarios")
         fig_volatilidad = go.Figure(data=[go.Histogram(x=precios["Retornos Diarios"].dropna(), nbinsx=50)])
-        fig_volatilidad.update_layout(title="Histograma de los Retornos Diarios",
-                                      xaxis_title="Retornos Diarios",
-                                      yaxis_title="Frecuencia",
-                                      template="plotly_dark")
+        fig_volatilidad.update_layout(
+            title="Histograma de los Retornos Diarios",
+            xaxis_title="Retornos Diarios",
+            yaxis_title="Frecuencia",
+            template="plotly_dark",
+            font=dict(size=14)  # Ajuste de tamaño de texto en el gráfico
+        )
         st.plotly_chart(fig_volatilidad)
 
+        # Explicación adicional después de los gráficos
+        st.markdown("""
+        **Explicación de los Resultados:**
+
+        1. **Gráfico de Precio Histórico de Cierre Ajustado**: Este gráfico muestra la evolución del precio de la acción durante los últimos 5 años. Ayuda a visualizar las tendencias a largo plazo de la empresa.
+
+        2. **Cálculo de Rendimientos Anualizados (CAGR)**: Los rendimientos anualizados muestran el crecimiento promedio anual de la acción durante los últimos 1, 3 y 5 años. Estos datos son útiles para evaluar la rentabilidad histórica de la acción.
+
+        3. **Volatilidad Anualizada**: La volatilidad mide el riesgo de la acción, calculando la variabilidad de los retornos diarios. Cuanto mayor sea la volatilidad, mayor será el riesgo asociado con la inversión en esa acción.
+
+        4. **Histograma de los Retornos Diarios**: El histograma muestra la distribución de los retornos diarios de la acción. Esto nos permite ver la frecuencia con la que ocurren ciertos rendimientos, proporcionando una visión adicional del riesgo asociado.
+
+        Estos cálculos y gráficos te ayudarán a tomar decisiones informadas sobre la acción que estás analizando.
+        """)
+
     except ValueError:
-        st.error("Ticker inválido, por favor revise e intente de nuevo.")
+        st.error("Introduzca un ticker correcto.")
 else:
     st.info("Introduce un ticker para comenzar el análisis.")
 
