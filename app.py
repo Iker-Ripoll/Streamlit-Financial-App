@@ -108,5 +108,6 @@ else:
 
 # Footer
 st.markdown("---")
-st.markdown("Desarrollado por Iker Ripoll Solana")
+st.markdown("Desarollado por Iker Ripoll Solana")
+st.markdown("Pongame 10 profe, LQM")
 
