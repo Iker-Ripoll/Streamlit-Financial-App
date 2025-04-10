@@ -12,7 +12,7 @@ import datetime
 load_dotenv()
 
 # Configurar API de Gemini con la clave en .env
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+genai.configure(api_key=os.getenv("AIzaSyDpKifyJFcRYxk3aNPDg4k-pmAKV8dMtwA"))
 
 # Función para calcular el CAGR (Tasa de Crecimiento Compuesta Anual)
 def calcular_cagr(precios, periodos):
