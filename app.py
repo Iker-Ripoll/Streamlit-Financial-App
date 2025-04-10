@@ -3,16 +3,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 import plotly.graph_objs as go
-import os
-from dotenv import load_dotenv
-import google.generativeai as genai
 import datetime
-
-# Cargar configuración de .env
-load_dotenv()
-
-# Configurar API de Gemini con la clave en .env
-genai.configure(api_key=os.getenv("AIzaSyA0GhovjmsBcwFOwGdOv9n_S2lJYNmJy4s"))
 
 # Función para calcular el CAGR (Tasa de Crecimiento Compuesta Anual)
 def calcular_cagr(precios, periodos):
@@ -20,12 +11,6 @@ def calcular_cagr(precios, periodos):
     fin = precios.iloc[-1]
     cagr = (fin / inicio) ** (1 / periodos) - 1
     return cagr
-
-# Función para llamar a Gemini y generar resumen
-def llamar_a_gemini(prompt):
-    model = genai.GenerativeModel("gemini-pro")
-    response = model.generate_content(prompt)
-    return response.text.strip()
 
 # Configuración inicial de Streamlit
 st.set_page_config(page_title="Análisis Financiero", page_icon="📊", layout="wide")
@@ -51,23 +36,7 @@ if ticker:
         # Mostrar información fundamental
         st.subheader(f"Información de {info['shortName']}")
         st.markdown(f"**Sector:** {info['sector']}")
-        
-        # --- Generar y mostrar resumen traducido y resumido ---
-        resumen_largo = info.get("longBusinessSummary", "")
-        
-        if resumen_largo:
-            prompt_resumen = f"""
-            Actúa como un analista financiero bilingüe. Resume y traduce al español el siguiente perfil empresarial en un texto profesional, claro y orientado a inversionistas. Usa un tono técnico pero comprensible. Limítate a un máximo de 300 palabras.
-
-            PERFIL ORIGINAL:
-            {resumen_largo}
-            """
-            resultado_resumen = llamar_a_gemini(prompt_resumen)
-            st.subheader("📘 Resumen de la Empresa (Traducido y Resumido por Gemini)")
-            st.markdown(f"<div style='text-align: justify;'>{resultado_resumen}</div>", unsafe_allow_html=True)
-        else:
-            st.warning("No se encontró un resumen disponible para esta empresa.")
-        
+        st.markdown(f"<div style='text-align: justify;'>{info['longBusinessSummary']}</div>", unsafe_allow_html=True)
         st.markdown("---")
 
         # Visualización de precios históricos
@@ -81,6 +50,13 @@ if ticker:
             font=dict(size=14)  # Ajuste de tamaño de texto en el gráfico
         )
         st.plotly_chart(fig)
+
+        # Explicación de los gráficos
+        st.markdown("""
+        **Nota**: El gráfico de precio histórico de cierre ajustado muestra la evolución del precio de la acción durante los últimos 5 años. 
+        Ayuda a visualizar cómo ha cambiado el valor de la acción a lo largo del tiempo y permite identificar tendencias o puntos clave en su comportamiento.
+        """)
+        st.markdown("---")
 
         # Cálculo de rendimientos anualizados (CAGR)
         st.subheader("📈 Rendimientos Anualizados (CAGR)")
@@ -97,6 +73,7 @@ if ticker:
         st.markdown("""
         **Nota:** El rendimiento anualizado (CAGR) se calcula como el crecimiento compuesto anual del precio de la acción para cada período.
         """)
+        st.markdown("---")
 
         # Cálculo de volatilidad anualizada
         st.subheader("📉 Volatilidad Anualizada")
@@ -106,6 +83,7 @@ if ticker:
         st.markdown("""
         **Nota:** La volatilidad mide el riesgo, basada en la desviación estándar de los retornos diarios de la acción.
         """)
+        st.markdown("---")
 
         # Gráfico adicional de volatilidad (histograma de los retornos diarios)
         st.subheader("📊 Histograma de los Retornos Diarios")
@@ -119,6 +97,15 @@ if ticker:
         )
         st.plotly_chart(fig_volatilidad)
 
+        # Explicación de los gráficos de volatilidad
+        st.markdown("""
+        **Nota**: El histograma de los retornos diarios muestra la distribución de los rendimientos de la acción en el corto plazo. 
+        Permite observar con qué frecuencia ocurren ciertos niveles de rendimiento, lo que proporciona información sobre la estabilidad y riesgo asociado con la acción.
+        """)
+        
+
+    
+
     except (ValueError, KeyError):
         st.error("*Introduzca un ticker correcto.*")  # Manejamos el error de ticker incorrecto sin romper el código
 else:
@@ -126,8 +113,11 @@ else:
 
 # Footer
 st.markdown("---")
-st.markdown("**Desarrollado por Iker Ripoll Solana**")
+st.markdown("**Desarollado por Iker Ripoll Solana**")
+
 st.markdown("**Lic. Administración y Finanzas**")
+
 st.markdown("**ID: 0243449**")
-st.markdown("**APP Desarrollada para el Examen de Ingeniería Financiera**")
+
+st.markdown("**APP Desarollada para el Examen de Ingenieria Financiera**")
 st.markdown("---")
