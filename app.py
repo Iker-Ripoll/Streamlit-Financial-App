@@ -1,123 +1,106 @@
+import streamlit as st
 import yfinance as yf
 import pandas as pd
-import numpy as np
-import streamlit as st
-import plotly.graph_objs as go
-import datetime
+import plotly.express as px
+import httpx
+import json
+import os
 
-# Función para calcular el CAGR (Tasa de Crecimiento Compuesta Anual)
-def calcular_cagr(precios, periodos):
-    inicio = precios.iloc[0]
-    fin = precios.iloc[-1]
-    cagr = (fin / inicio) ** (1 / periodos) - 1
-    return cagr
+# --- CONFIGURACION GENERAL ---
+st.set_page_config(page_title="Asesor de Inversión", layout="wide")
 
-# Configuración inicial de Streamlit
-st.set_page_config(page_title="Análisis Financiero", page_icon="📊", layout="wide")
-
-# Título centrado
-st.markdown("<h1 style='text-align: center;'>Análisis Financiero Interactivo</h1>", unsafe_allow_html=True)
-
+# --- ESTILOS PERSONALIZADOS ---
 st.markdown("""
-Esta aplicación permite analizar el desempeño de una empresa en la bolsa de valores mediante el uso de datos históricos de precios de acciones y métricas financieras. 
-Introduce el ticker de una acción para obtener información detallada, gráficas y análisis.
-""")
+    <style>
+    body { background-color: #ffffff; color: #000000; }
+    .main { background-color: #ffffff; }
+    h1, h2, h3 { color: #1DA1F2; }
+    .stButton>button { background-color: #1DA1F2; color: white; border-radius: 8px; }
+    </style>
+""", unsafe_allow_html=True)
 
-# Entrada de datos - Ticker de la empresa
-ticker = st.text_input("Introduce el Ticker de la Empresa (Ej. AAPL, MSFT, TSLA):")
+st.title("💼 Asesor de Inversión Personalizado")
 
-if ticker:
-    # Intentar obtener datos con yfinance
-    try:
-        empresa = yf.Ticker(ticker)
-        info = empresa.info
-        precios = empresa.history(period="5y")  # Obtiene datos de 5 años
+# --- FUNCION PARA CONSULTAR A CLAUDE AI ---
+async def analizar_perfil_con_claude(respuestas_dict):
+    api_key = os.getenv("CLAUDE_API_KEY")
+    prompt_sistema = """Como analista experto en riesgos de inversión con más de 20 años de experiencia...
+    (el prompt completo va aquí, recortado por brevedad)"""
+    mensaje_usuario = f"Estas son las respuestas del usuario: {json.dumps(respuestas_dict)}"
 
-        # Mostrar información fundamental
-        st.subheader(f"Información de {info['shortName']}")
-        st.markdown(f"**Sector:** {info['sector']}")
-        st.markdown(f"<div style='text-align: justify;'>{info['longBusinessSummary']}</div>", unsafe_allow_html=True)
-        st.markdown("---")
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "claude-3-opus-20240229",
+        "messages": [
+            {"role": "system", "content": prompt_sistema},
+            {"role": "user", "content": mensaje_usuario}
+        ],
+        "max_tokens": 1024,
+        "temperature": 0.5
+    }
+    async with httpx.AsyncClient() as client:
+        r = await client.post("https://api.anthropic.com/v1/messages", headers=headers, json=payload)
+        return r.json()["content"]
 
-        # Visualización de precios históricos
-        st.subheader("📈 Precio Histórico de Cierre Ajustado")
-        fig = go.Figure(data=[go.Scatter(x=precios.index, y=precios['Close'], mode='lines', name='Precio de Cierre Ajustado')])
-        fig.update_layout(
-            title=f"Precio Histórico de Cierre Ajustado - {ticker} (2019-2024)",
-            xaxis_title="Fecha",
-            yaxis_title="Precio (USD)",
-            template="plotly_dark",
-            font=dict(size=14)  # Ajuste de tamaño de texto en el gráfico
-        )
-        st.plotly_chart(fig)
+# --- CUESTIONARIO DIVIDIDO POR SECCIONES ---
+respuestas = {}
+secciones = {
+    "1. Datos Personales y Financieros": ["Edad", "Situación laboral", "Ingreso anual", "% a invertir"],
+    "2. Experiencia y Conocimientos": ["Nivel de conocimiento", "Tipo de inversiones realizadas"],
+    "3. Tolerancia al Riesgo": ["Reacción ante pérdidas", "Expectativas de rendimiento"],
+    "4. Objetivos de Inversión": ["Objetivo principal", "Horizonte de uso del capital"],
+    "5. Circunstancias Personales": ["Dependientes económicos", "Estabilidad laboral"],
+    "6. Factores Psicológicos": ["Actitud ante decisiones", "Reacción emocional ante pérdidas"],
+    "7. Capacidad Financiera": ["% del patrimonio invertido", "Fondo de emergencia"]
+}
 
-        # Explicación de los gráficos
-        st.markdown("""
-        **Nota**: El gráfico de precio histórico de cierre ajustado muestra la evolución del precio de la acción durante los últimos 5 años. 
-        Ayuda a visualizar cómo ha cambiado el valor de la acción a lo largo del tiempo y permite identificar tendencias o puntos clave en su comportamiento.
-        """)
-        st.markdown("---")
+with st.form("cuestionario_form"):
+    st.subheader("📝 Cuestionario de Perfil de Riesgo")
+    for seccion, preguntas in secciones.items():
+        with st.expander(seccion):
+            for pregunta in preguntas:
+                respuestas[pregunta] = st.text_input(pregunta)
+    enviado = st.form_submit_button("Enviar respuestas")
 
-        # Cálculo de rendimientos anualizados (CAGR)
-        st.subheader("📈 Rendimientos Anualizados (CAGR)")
-        cagr_1 = calcular_cagr(precios['Close'], 1)
-        cagr_3 = calcular_cagr(precios['Close'], 3)
-        cagr_5 = calcular_cagr(precios['Close'], 5)
+# --- ANALISIS DE RESPUESTAS ---
+if enviado:
+    st.success("✅ Respuestas enviadas. Analizando perfil con Claude AI...")
 
-        rendimientos = {
-            "Periodo": ["1 Año", "3 Años", "5 Años"],
-            "CAGR (%)": [round(cagr_1 * 100, 2), round(cagr_3 * 100, 2), round(cagr_5 * 100, 2)]
-        }
+    import asyncio
+    resultado = asyncio.run(analizar_perfil_con_claude(respuestas))
 
-        st.dataframe(pd.DataFrame(rendimientos))
-        st.markdown("""
-        **Nota:** El rendimiento anualizado (CAGR) se calcula como el crecimiento compuesto anual del precio de la acción para cada período.
-        """)
-        st.markdown("---")
+    st.subheader("🔍 Resultado de Claude AI")
+    st.markdown(resultado)
 
-        # Cálculo de volatilidad anualizada
-        st.subheader("📉 Volatilidad Anualizada")
-        precios["Retornos Diarios"] = precios["Close"].pct_change()
-        volatilidad = np.std(precios["Retornos Diarios"].dropna()) * np.sqrt(252)
-        st.metric(label="Volatilidad Anualizada (%)", value=f"{round(volatilidad * 100, 2)}%")
-        st.markdown("""
-        **Nota:** La volatilidad mide el riesgo, basada en la desviación estándar de los retornos diarios de la acción.
-        """)
-        st.markdown("---")
+    st.divider()
+    st.header("📈 Portafolio Recomendado")
 
-        # Gráfico adicional de volatilidad (histograma de los retornos diarios)
-        st.subheader("📊 Histograma de los Retornos Diarios")
-        fig_volatilidad = go.Figure(data=[go.Histogram(x=precios["Retornos Diarios"].dropna(), nbinsx=50)])
-        fig_volatilidad.update_layout(
-            title="Histograma de los Retornos Diarios",
-            xaxis_title="Retornos Diarios",
-            yaxis_title="Frecuencia",
-            template="plotly_dark",
-            font=dict(size=14)  # Ajuste de tamaño de texto en el gráfico
-        )
-        st.plotly_chart(fig_volatilidad)
+    portafolio = {"Tesla": 0.4, "Apple": 0.3, "Microsoft": 0.3}
+    monto = st.number_input("💰 Ingresa el monto a invertir:", min_value=1000, step=1000)
 
-        # Explicación de los gráficos de volatilidad
-        st.markdown("""
-        **Nota**: El histograma de los retornos diarios muestra la distribución de los rendimientos de la acción en el corto plazo. 
-        Permite observar con qué frecuencia ocurren ciertos niveles de rendimiento, lo que proporciona información sobre la estabilidad y riesgo asociado con la acción.
-        """)
-        
+    if monto:
+        tickers = list(portafolio.keys())
+        data = yf.download(tickers, period="1d")['Adj Close']
+        precios_actuales = data.iloc[0].to_dict()
 
-    
+        st.subheader("📊 Distribución del Portafolio")
+        pesos = [v for v in portafolio.values()]
+        fig = px.pie(names=tickers, values=pesos, title="Distribución %")
+        st.plotly_chart(fig, use_container_width=True)
 
-    except (ValueError, KeyError):
-        st.error("*Introduzca un ticker correcto.*")  # Manejamos el error de ticker incorrecto sin romper el código
-else:
-    st.info("*Introduce un ticker para comenzar el análisis.*")
+        st.subheader("📋 Detalle del Portafolio")
+        df = pd.DataFrame({
+            "Empresa": tickers,
+            "% del Portafolio": pesos,
+            "Precio Actual": [precios_actuales[t] for t in tickers],
+            "Monto Invertido": [monto * p for p in pesos]
+        })
+        df["Acciones Compradas"] = df["Monto Invertido"] / df["Precio Actual"]
+        df["Precio de Compra"] = df["Precio Actual"]  # Simulado
+        df["Ganancia/Perdida $"] = 0
+        df["Ganancia/Perdida %"] = 0
 
-# Footer
-st.markdown("---")
-st.markdown("**Desarollado por Iker Ripoll Solana**")
-
-st.markdown("**Lic. Administración y Finanzas**")
-
-st.markdown("**ID: 0243449**")
-
-st.markdown("**APP Desarollada para el Examen de Ingenieria Financiera**")
-st.markdown("---")
+        st.dataframe(df, use_container_width=True)
